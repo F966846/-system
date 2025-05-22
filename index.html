@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关税政策预警系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            danger: '#F53F3F',
+            warning: '#FF7D00',
+            success: '#00B42A',
+            dark: '#1D2129',
+            'gray-100': '#F2F3F5',
+            'gray-200': '#E5E6EB',
+            'gray-300': '#C9CDD4',
+            'gray-400': '#86909C',
+            'gray-500': '#4E5969',
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .shadow-card {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(22, 93, 255, 0.12);
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .text-gradient {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+      .bg-glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+      }
+      .scale-hover {
+        transition: transform 0.3s ease;
+      }
+      .scale-hover:hover {
+        transform: scale(1.03);
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .number-animation {
+        transition: all 1s ease;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-100 min-h-screen flex flex-col">
+  <!-- 顶部导航栏 -->
+  <header class="bg-white shadow-md fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="navbar">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
+            <i class="fa-solid fa-shield text-white"></i>
+          </div>
+          <span class="text-xl font-bold text-dark">关税政策预警系统</span>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#" class="text-primary font-medium">仪表盘</a>
+          <a href="#" class="text-gray-500 hover:text-primary transition-colors">税率监控</a>
+          <a href="#" class="text-gray-500 hover:text-primary transition-colors">风险评估</a>
+          <a href="#" class="text-gray-500 hover:text-primary transition-colors">响应管理</a>
+          <a href="#" class="text-gray-500 hover:text-primary transition-colors">系统设置</a>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <button class="p-2 rounded-full hover:bg-gray-100 transition-colors relative" id="notificationBtn">
+              <i class="fa-solid fa-bell text-gray-500"></i>
+              <span class="absolute top-0 right-0 w-2 h-2 bg-danger rounded-full"></span>
+              
+              <!-- 通知下拉菜单 -->
+              <div class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50 hidden fade-in" id="notificationDropdown">
+                <div class="px-4 py-2 border-b border-gray-100">
+                  <h3 class="font-medium text-dark">通知中心</h3>
+                </div>
+                <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <div class="w-8 h-8 rounded-full bg-danger/20 flex items-center justify-center">
+                        <i class="fa-solid fa-exclamation-triangle text-danger"></i>
+                      </div>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-dark">美国提高电子产品关税</p>
+                      <p class="text-xs text-gray-400">10分钟前</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <div class="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center">
+                        <i class="fa-solid fa-chart-line text-warning"></i>
+                      </div>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-dark">欧盟税率变动预测</p>
+                      <p class="text-xs text-gray-400">1小时前</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-4 py-2 border-t border-gray-100">
+                  <a href="#" class="text-sm text-primary hover:text-primary/80">查看全部通知</a>
+                </div>
+              </div>
+            </button>
+          </div>
+          <div class="flex items-center space-x-2">
+            <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover">
+            <span class="text-sm font-medium text-dark hidden md:block">管理员</span>
+          </div>
+          <button class="md:hidden" id="menuToggle">
+            <i class="fa-solid fa-bars text-gray-500"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div class="md:hidden h-0 overflow-hidden transition-all duration-300" id="mobileMenu">
+      <div class="px-4 py-3 space-y-3 bg-white">
+        <a href="#" class="block py-2 text-primary font-medium">仪表盘</a>
+        <a href="#" class="block py-2 text-gray-500">税率监控</a>
+        <a href="#" class="block py-2 text-gray-500">风险评估</a>
+        <a href="#" class="block py-2 text-gray-500">响应管理</a>
+        <a href="#" class="block py-2 text-gray-500">系统设置</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区域 -->
+  <main class="flex-1 pt-20 pb-10">
+    <div class="container mx-auto px-4">
+      <!-- 页面标题 -->
+      <div class="mb-8 fade-in">
+        <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark">关税政策预警仪表盘</h1>
+        <p class="text-gray-400 mt-2">实时监控全球关税政策变化，智能评估风险等级</p>
+      </div>
+      
+      <!-- 预警状态卡片 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl p-6 shadow-card card-hover fade-in" style="animation-delay: 0.1s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-dark">当前预警等级</h3>
+            <span class="px-3 py-1 rounded-full bg-danger/10 text-danger text-sm font-medium">高风险</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-full bg-danger/20 flex items-center justify-center">
+              <i class="fa-solid fa-exclamation-triangle text-2xl text-danger"></i>
+            </div>
+            <div>
+              <p class="text-3xl font-bold text-dark number-animation" id="highRiskCount">12</p>
+              <p class="text-gray-400">个国家/地区触发高风险预警</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">主要影响行业</span>
+              <span class="text-dark font-medium">电子、机械、化工</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 shadow-card card-hover fade-in" style="animation-delay: 0.2s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-dark">近期税率变动</h3>
+            <span class="px-3 py-1 rounded-full bg-warning/10 text-warning text-sm font-medium">上升</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-full bg-warning/20 flex items-center justify-center">
+              <i class="fa-solid fa-chart-line text-2xl text-warning"></i>
+            </div>
+            <div>
+              <p class="text-3xl font-bold text-dark number-animation" id="rateChange">+2.7%</p>
+              <p class="text-gray-400">平均税率较上月增长</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">最大增幅</span>
+              <span class="text-dark font-medium">8.3% (钢铁制品)</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 shadow-card card-hover fade-in" style="animation-delay: 0.3s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-dark">系统响应状态</h3>
+            <span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">活跃</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+              <i class="fa-solid fa-shield-check text-2xl text-primary"></i>
+            </div>
+            <div>
+              <p class="text-3xl font-bold text-dark">24/7</p>
+              <p class="text-gray-400">全天候应急响应中</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">响应团队</span>
+              <span class="text-dark font-medium">CEO办公室直接介入</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 主要内容区域 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 左侧区域 -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- 税率变动趋势图 -->
+          <div class="bg-white rounded-xl p-6 shadow-card fade-in" style="animation-delay: 0.4s">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-dark">主要市场税率变动趋势</h3>
+              <div class="flex space-x-2">
+                <button class="px-3 py-1 rounded-md bg-primary text-white text-sm time-filter-btn active" data-period="month">月</button>
+                <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-500 text-sm hover:bg-gray-200 transition-colors time-filter-btn" data-period="quarter">季</button>
+                <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-500 text-sm hover:bg-gray-200 transition-colors time-filter-btn" data-period="year">年</button>
+              </div>
+            </div>
+            <div class="h-80">
+              <canvas id="rateTrendChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- 高风险预警列表 -->
+          <div class="bg-white rounded-xl p-6 shadow-card fade-in" style="animation-delay: 0.5s">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-dark">高风险预警列表</h3>
+              <a href="#" class="text-primary text-sm flex items-center">
+                查看全部 <i class="fa-solid fa-chevron-right ml-1 text-xs"></i>
+              </a>
+            </div>
+            <div class="overflow-x-auto scrollbar-hide">
+              <table class="min-w-full">
+                <thead>
+                  <tr class="border-b border-gray-100">
+                    <th class="py-3 text-left text-sm font-medium text-gray-500">国家/地区</th>
+                    <th class="py-3 text-left text-sm font-medium text-gray-500">HS编码</th>
+                    <th class="py-3 text-left text-sm font-medium text-gray-500">原税率</th>
+                    <th class="py-3 text-left text-sm font-medium text-gray-500">新税率</th>
+                    <th class="py-3 text-left text-sm font-medium text-gray-500">变动幅度</th>
+                    <th class="py-3 text-left text-sm font-medium text-gray-500">更新时间</th>
+                    <th class="py-3 text-left text-sm font-medium text-gray-500">状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors scale-hover">
+                    <td class="py-4 text-sm">
+                      <div class="flex items-center space-x-2">
+                        <img src="https://picsum.photos/id/1011/30/20" alt="美国国旗" class="w-6 h-4 object-cover rounded">
+                        <span class="font-medium">美国</span>
+                      </div>
+                    </td>
+                    <td class="py-4 text-sm">8517</td>
+                    <td class="py-4 text-sm">3.5%</td>
+                    <td class="py-4 text-sm font-medium">11.8%</td>
+                    <td class="py-4 text-sm font-medium text-danger">+8.3%</td>
+                    <td class="py-4 text-sm text-gray-400">2025-05-20</td>
+                    <td class="py-4 text-sm">
+                      <span class="px-2 py-1 rounded-full bg-danger/10 text-danger text-xs">紧急</span>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors scale-hover">
+                    <td class="py-4 text-sm">
+                      <div class="flex items-center space-x-2">
+                        <img src="https://picsum.photos/id/1012/30/20" alt="欧盟国旗" class="w-6 h-4 object-cover rounded">
+                        <span class="font-medium">欧盟</span>
+                      </div>
+                    </td>
+                    <td class="py-4 text-sm">7208</td>
+                    <td class="py-4 text-sm">5.2%</td>
+                    <td class="py-4 text-sm font-medium">9.7%</td>
+                    <td class="py-4 text-sm font-medium text-danger">+4.5%</td>
+                    <td class="py-4 text-sm text-gray-400">2025-05-18</td>
+                    <td class="py-4 text-sm">
+                      <span class="px-2 py-1 rounded-full bg-danger/10 text-danger text-xs">紧急</span>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors scale-hover">
+                    <td class="py-4 text-sm">
+                      <div class="flex items-center space-x-2">
+                        <img src="https://picsum.photos/id/1013/30/20" alt="日本国旗" class="w-6 h-4 object-cover rounded">
+                        <span class="font-medium">日本</span>
+                      </div>
+                    </td>
+                    <td class="py-4 text-sm">3907</td>
+                    <td class="py-4 text-sm">2.8%</td>
+                    <td class="py-4 text-sm font-medium">5.1%</td>
+                    <td class="py-4 text-sm font-medium text-danger">+2.3%</td>
+                    <td class="py-4 text-sm text-gray-400">2025-05-15</td>
+                    <td class="py-4 text-sm">
+                      <span class="px-2 py-1 rounded-full bg-warning/10 text-warning text-xs">高风险</span>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors scale-hover">
+                    <td class="py-4 text-sm">
+                      <div class="flex items-center space-x-2">
+                        <img src="https://picsum.photos/id/1014/30/20" alt="韩国国旗" class="w-6 h-4 object-cover rounded">
+                        <span class="font-medium">韩国</span>
+                      </div>
+                    </td>
+                    <td class="py-4 text-sm">8471</td>
+                    <td class="py-4 text-sm">4.0%</td>
+                    <td class="py-4 text-sm font-medium">6.2%</td>
+                    <td class="py-4 text-sm font-medium text-danger">+2.2%</td>
+                    <td class="py-4 text-sm text-gray-400">2025-05-14</td>
+                    <td class="py-4 text-sm">
+                      <span class="px-2 py-1 rounded-full bg-warning/10 text-warning text-xs">高风险</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <!-- 近期政策变化 -->
+          <div class="bg-white rounded-xl p-6 shadow-card fade-in" style="animation-delay: 0.6s">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-dark">近期政策变化</h3>
+              <a href="#" class="text-primary text-sm flex items-center">
+                查看全部 <i class="fa-solid fa-chevron-right ml-1 text-xs"></i>
+              </a>
+            </div>
+            <div class="space-y-4">
+              <div class="p-4 bg-primary/5 rounded-lg border border-primary/20 scale-hover">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <i class="fa-solid fa-gavel text-primary"></i>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="font-medium text-dark">美国《2025年贸易关税调整法案》</h4>
+                    <p class="text-sm text-gray-500 mt-1">该法案将对进口电子产品加征10%关税，预计于2025年7月1日生效。</p>
+                    <div class="flex items-center mt-2 text-xs text-gray-400">
+                      <span><i class="fa-solid fa-calendar-days mr-1"></i> 2025-05-18</span>
+                      <span class="mx-2">|</span>
+                      <span><i class="fa-solid fa-user mr-1"></i> 贸易政策部</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4 bg-warning/5 rounded-lg border border-warning/20 scale-hover">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center">
+                      <i class="fa-solid fa-file-text text-warning"></i>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="font-medium text-dark">欧盟发布《2025年关税调整提案》</h4>
+                    <p class="text-sm text-gray-500 mt-1">提案建议对钢铁制品关税提高5%，目前正在征求各成员国意见。</p>
+                    <div class="flex items-center mt-2 text-xs text-gray-400">
+                      <span><i class="fa-solid fa-calendar-days mr-1"></i> 2025-05-15</span>
+                      <span class="mx-2">|</span>
+                      <span><i class="fa-solid fa-user mr-1"></i> 国际贸易研究中心</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4 bg-success/5 rounded-lg border border-success/20 scale-hover">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+                      <i class="fa-solid fa-handshake text-success"></i>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="font-medium text-dark">中日韩自贸协定第三阶段谈判</h4>
+                    <p class="text-sm text-gray-500 mt-1">三方就降低电子产品关税达成初步共识，预计部分产品关税将降至零。</p>
+                    <div class="flex items-center mt-2 text-xs text-gray-400">
+                      <span><i class="fa-solid fa-calendar-days mr-1"></i> 2025-05-10</span>
+                      <span class="mx-2">|</span>
+                      <span><i class="fa-solid fa-user mr-1"></i> 商务部</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 右侧区域 -->
+        <div class="space-y-6">
+          <!-- 风险分布 -->
+          <div class="bg-white rounded-xl p-6 shadow-card fade-in" style="animation-delay: 0.4s">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-dark">风险等级分布</h3>
+              <div class="text-sm text-gray-400">总计: 42</div>
+            </div>
+            <div class="h-60">
+              <canvas id="riskDistributionChart"></canvas>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-danger number-animation" id="highRiskCountSmall">12</div>
+                <div class="text-xs text-gray-500 mt-1">高风险</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-warning number-animation" id="mediumRiskCount">23</div>
+                <div class="text-xs text-gray-500 mt-1">中风险</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-success number-animation" id="lowRiskCount">7</div>
+                <div class="text-xs text-gray-500 mt-1">低风险</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 行业影响分析 -->
+          <div class="bg-white rounded-xl p-6 shadow-card fade-in" style="animation-delay: 0.5s">
+            <h3 class="text-lg font-semibold text-dark mb-6">行业影响分析</h3>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-500">电子电器</span>
+                  <span class="text-sm font-medium text-danger">87%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="bg-danger h-2 rounded-full progress-bar" style="width: 0%" data-target="87"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-500">机械设备</span>
+                  <span class="text-sm font-medium text-danger">76%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="bg-danger h-2 rounded-full progress-bar" style="width: 0%" data-target="76"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-500">化工产品</span>
+                  <span class="text-sm font-medium text-warning">63%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="bg-warning h-2 rounded-full progress-bar" style="width: 0%" data-target="63"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-500">纺织品</span>
+                  <span class="text-sm font-medium text-warning">54%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="bg-warning h-2 rounded-full progress-bar" style="width: 0%" data-target="54"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-500">食品加工</span>
+                  <span class="text-sm font-medium text-success">32%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="bg-success h-2 rounded-full progress-bar" style="width: 0%" data-target="32"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 响应机制 -->
+          <div class="bg-white rounded-xl p-6 shadow-card fade-in" style="animation-delay: 0.6s">
+            <h3 class="text-lg font-semibold text-dark mb-6">当前响应机制</h3>
+            <div class="space-y-4">
+              <div class="flex items-center p-3 bg-danger/5 rounded-lg border border-danger/20 scale-hover">
+                <div class="w-10 h-10 rounded-full bg-danger/20 flex items-center justify-center mr-3">
+                  <i class="fa-solid fa-bolt text-danger"></i>
+                </div>
+                <div>
+                  <h4 class="font-medium text-dark">应急响应</h4>
+                  <p class="text-xs text-gray-500">24小时滚动监测，CEO直接介入</p>
+                </div>
+              </div>
+              <div class="flex items-center p-3 bg-warning/5 rounded-lg border border-warning/20 scale-hover">
+                <div class="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center mr-3">
+                  <i class="fa-solid fa-users text-warning"></i>
+                </div>
+                <div>
+                  <h4 class="font-medium text-dark">部门响应</h4>
+                  <p class="text-xs text-gray-500">5个工作日评估，CMO牵头应对</p>
+                </div>
+              </div>
+              <div class="flex items-center p-3 bg-success/5 rounded-lg border border-success/20 scale-hover">
+                <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center mr-3">
+                  <i class="fa-solid fa-file-text text-success"></i>
+                </div>
+                <div>
+                  <h4 class="font-medium text-dark">常规响应</h4>
+                  <p class="text-xs text-gray-500">月度汇总报告，部门经理负责</p>
+                </div>
+              </div>
+            </div>
+            <button class="w-full mt-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors scale-hover">
+              查看完整响应计划
+            </button>
+          </div>
+          
+          <!-- 预测分析 -->
+          <div class="bg-white rounded-xl p-6 shadow-card fade-in" style="animation-delay: 0.7s">
+            <h3 class="text-lg font-semibold text-dark mb-6">未来3个月预测</h3>
+            <div class="space-y-4">
+              <div class="p-4 bg-primary/5 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="font-medium text-dark">高风险国家数量</h4>
+                    <p class="text-sm text-gray-500 mt-1">预计将增加至18个</p>
+                  </div>
+                  <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-trend-up text-primary"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4 bg-warning/5 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="font-medium text-dark">平均税率</h4>
+                    <p class="text-sm text-gray-500 mt-1">预计上涨至7.5%</p>
+                  </div>
+                  <div class="w-12 h-12 rounded-full bg-warning/20 flex items-center justify-center">
+                    <i class="fa-solid fa-chart-line text-warning"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4 bg-success/5 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="font-medium text-dark">贸易协定谈判</h4>
+                    <p class="text-sm text-gray-500 mt-1">3项新协定可能达成</p>
+                  </div>
+                  <div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center">
+                    <i class="fa-solid fa-handshake text-success"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="w-full mt-4 py-2 bg-white border border-gray-200 text-dark rounded-lg hover:bg-gray-50 transition-colors scale-hover">
+              查看详细预测报告
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-white py-6 border-t border-gray-200 fade-in" style="animation-delay: 0.8s">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="mb-4 md:mb-0">
+          <p class="text-gray-500 text-sm">© 2025 关税政策预警系统. 保留所有权利.</p>
+        </div>
+        <div class="flex space-x-6">
+          <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+            <i class="fa-solid fa-file-text"></i>
+            <span class="ml-1 text-sm">帮助中心</span>
+          </a>
+          <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+            <i class="fa-solid fa-shield"></i>
+            <span class="ml-1 text-sm">隐私政策</span>
+          </a>
+          <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+            <i class="fa-solid fa-file-contract"></i>
+            <span class="ml-1 text-sm">服务条款</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // 移动端菜单切换
+    document.getElementById('menuToggle').addEventListener('click', function() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      if (mobileMenu.classList.contains('h-0')) {
+        mobileMenu.classList.remove('h-0');
+        mobileMenu.classList.add('h-auto');
+      } else {
+        mobileMenu.classList.add('h-0');
+        mobileMenu.classList.remove('h-auto');
+      }
+    });
+    
+    // 导航栏滚动效果
+    window.addEventListener('scroll', function() {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 10) {
+        navbar.classList.add('shadow-lg');
+        navbar.classList.remove('shadow-md');
+      } else {
+        navbar.classList.remove('shadow-lg');
+        navbar.classList.add('shadow-md');
+      }
+    });
+    
+    // 通知下拉菜单
+    document.getElementById('notificationBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const notificationDropdown = document.getElementById('notificationDropdown');
+      notificationDropdown.classList.toggle('hidden');
+    });
+    
+    // 点击页面其他地方关闭通知下拉菜单
+    document.addEventListener('click', function(e) {
+      const notificationDropdown = document.getElementById('notificationDropdown');
+      if (!notificationDropdown.classList.contains('hidden')) {
+        notificationDropdown.classList.add('hidden');
+      }
+    });
+    
+    // 税率趋势图
+    const rateTrendCtx = document.getElementById('rateTrendChart').getContext('2d');
+    let rateTrendChart = new Chart(rateTrendCtx, {
+      type: 'line',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+          {
+            label: '美国',
+            data: [2.8, 3.1, 3.5, 4.2, 5.3, 6.7, 7.5, 8.2, 9.1, 10.2, 11.0, 11.8],
+            borderColor: '#F53F3F',
+            backgroundColor: 'rgba(245, 63, 63, 0.1)',
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: '欧盟',
+            data: [3.5, 3.7, 4.0, 4.3, 4.8, 5.2, 5.7, 6.3, 7.0, 7.8, 8.5, 9.7],
+            borderColor: '#FF7D00',
+            backgroundColor: 'rgba(255, 125, 0, 0.1)',
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: '日本',
+            data: [1.9, 2.1, 2.3, 2.5, 2.7, 2.8, 3.0, 3.3, 3.7, 4.1, 4.6, 5.1],
+            borderColor: '#165DFF',
+            backgroundColor: 'rgba(22, 93, 255, 0.1)',
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: '全球平均',
+            data: [3.2, 3.4, 3.6, 3.8, 4.0, 4.2, 4.5, 4.8, 5.1, 5.4, 5.8, 6.3],
+            borderColor: '#00B42A',
+            backgroundColor: 'rgba(0, 180, 42, 0.1)',
+            tension: 0.3,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              boxWidth: 6
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            titleColor: '#1D2129',
+            bodyColor: '#4E5969',
+            borderColor: 'rgba(22, 93, 255, 0.1)',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.raw + '%';
+              }
